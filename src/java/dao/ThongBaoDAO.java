@@ -80,10 +80,115 @@ public class ThongBaoDAO {
                 }
             }
         } catch (SQLException e) {
+            System.err.println("Get unread notifications error: " + e.getMessage());
             e.printStackTrace();
         }
         
         return dsThongBao;
+    }
+    
+    // Đếm số thông báo chưa đọc
+    public int countThongBaoChuaDoc(int nguoiNhanId) {
+        String sql = "SELECT COUNT(*) as count FROM thong_bao WHERE nguoi_nhan_id = ? AND da_doc = false";
+        
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setInt(1, nguoiNhanId);
+            ResultSet rs = stmt.executeQuery();
+            
+            if (rs.next()) {
+                return rs.getInt("count");
+            }
+        } catch (SQLException e) {
+            System.err.println("Count unread notifications error: " + e.getMessage());
+            e.printStackTrace();
+        }
+        
+        return 0;
+    }
+    
+    // Gửi thông báo đến tất cả nhân viên
+    public boolean guiThongBaoToAll(String tieuDe, String noiDung, String loaiThongBao) {
+        String sqlGetAllEmployees = "SELECT id FROM nhanvien WHERE trang_thai = 'Hoat_dong'";
+        String sqlInsertNotification = "INSERT INTO thong_bao (nguoi_nhan_id, tieu_de, noi_dung, loai_thong_bao, da_doc) VALUES (?, ?, ?, ?, false)";
+        
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            conn.setAutoCommit(false);
+            
+            List<Integer> employeeIds = new ArrayList<>();
+            
+            // Get all active employees
+            try (PreparedStatement stmt = conn.prepareStatement(sqlGetAllEmployees);
+                 ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    employeeIds.add(rs.getInt("id"));
+                }
+            }
+            
+            // Send notification to each employee
+            try (PreparedStatement stmt = conn.prepareStatement(sqlInsertNotification)) {
+                for (int employeeId : employeeIds) {
+                    stmt.setInt(1, employeeId);
+                    stmt.setString(2, tieuDe);
+                    stmt.setString(3, noiDung);
+                    stmt.setString(4, loaiThongBao);
+                    stmt.addBatch();
+                }
+                stmt.executeBatch();
+            }
+            
+            conn.commit();
+            return true;
+            
+        } catch (SQLException e) {
+            System.err.println("Send notification to all error: " + e.getMessage());
+            e.printStackTrace();
+        }
+        
+        return false;
+    }
+    
+    // Gửi thông báo đến phòng ban
+    public boolean guiThongBaoToPhongBan(int phongBanId, String tieuDe, String noiDung, String loaiThongBao) {
+        String sqlGetEmployeesByDept = "SELECT id FROM nhanvien WHERE phong_ban_id = ? AND trang_thai = 'Hoat_dong'";
+        String sqlInsertNotification = "INSERT INTO thong_bao (nguoi_nhan_id, tieu_de, noi_dung, loai_thong_bao, da_doc) VALUES (?, ?, ?, ?, false)";
+        
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            conn.setAutoCommit(false);
+            
+            List<Integer> employeeIds = new ArrayList<>();
+            
+            // Get employees in department
+            try (PreparedStatement stmt = conn.prepareStatement(sqlGetEmployeesByDept)) {
+                stmt.setInt(1, phongBanId);
+                ResultSet rs = stmt.executeQuery();
+                while (rs.next()) {
+                    employeeIds.add(rs.getInt("id"));
+                }
+            }
+            
+            // Send notification to each employee in department
+            try (PreparedStatement stmt = conn.prepareStatement(sqlInsertNotification)) {
+                for (int employeeId : employeeIds) {
+                    stmt.setInt(1, employeeId);
+                    stmt.setString(2, tieuDe);
+                    stmt.setString(3, noiDung);
+                    stmt.setString(4, loaiThongBao);
+                    stmt.addBatch();
+                }
+                stmt.executeBatch();
+            }
+            
+            conn.commit();
+            return true;
+            
+        } catch (SQLException e) {
+            System.err.println("Send notification to department error: " + e.getMessage());
+            e.printStackTrace();
+        }
+        
+        return false;
     }
     
     // Lấy thông báo theo ID
@@ -126,6 +231,38 @@ public class ThongBaoDAO {
             
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    // Đánh dấu thông báo đã đọc
+    public boolean markAsRead(int id) {
+        String sql = "UPDATE thong_bao SET da_doc = true WHERE id = ?";
+        
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setInt(1, id);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("Mark as read error: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    // Đánh dấu tất cả thông báo của user đã đọc
+    public boolean markAllAsRead(int nguoiNhanId) {
+        String sql = "UPDATE thong_bao SET da_doc = true WHERE nguoi_nhan_id = ? AND da_doc = false";
+        
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setInt(1, nguoiNhanId);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("Mark all as read error: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
@@ -204,27 +341,6 @@ public class ThongBaoDAO {
         }
     }
     
-    // Đếm số thông báo chưa đọc
-    public int countThongBaoChuaDoc(int nguoiNhanId) {
-        String sql = "SELECT COUNT(*) as count FROM thong_bao WHERE nguoi_nhan_id = ? AND da_doc = false";
-        
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
-            stmt.setInt(1, nguoiNhanId);
-            
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt("count");
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        
-        return 0;
-    }
-    
     // Lấy thông báo mới nhất (top 5)
     public List<ThongBao> getThongBaoMoiNhat(int nguoiNhanId, int limit) {
         List<ThongBao> dsThongBao = new ArrayList<>();
@@ -251,6 +367,11 @@ public class ThongBaoDAO {
         }
         
         return dsThongBao;
+    }
+    
+    // Send notification to multiple users (alias for addThongBaoChoNhieuNguoi)
+    public boolean guiThongBaoChoNhieuNguoi(String tieuDe, String noiDung, String loaiThongBao, List<Integer> dsNguoiNhanId) {
+        return addThongBaoChoNhieuNguoi(tieuDe, noiDung, loaiThongBao, dsNguoiNhanId);
     }
     
     // Map ResultSet to ThongBao object

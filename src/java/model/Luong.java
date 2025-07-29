@@ -178,6 +178,15 @@ public class Luong {
         this.tenPhongBan = tenPhongBan;
     }
     
+    // Alias for setPhat (khau tru = phat in this context)
+    public void setKhauTru(BigDecimal khauTru) {
+        this.phat = khauTru;
+    }
+    
+    public BigDecimal getKhauTru() {
+        return this.phat;
+    }
+    
     // Helper methods
     public BigDecimal tinhLuongThucTe() {
         BigDecimal tongThu = luongCoBan.add(phuCap).add(thuong);

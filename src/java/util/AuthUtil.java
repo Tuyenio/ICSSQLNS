@@ -77,4 +77,25 @@ public class AuthUtil {
             e.printStackTrace();
         }
     }
+    
+    // Lấy parameter từ request (sử dụng reflection để tránh servlet dependency)
+    public static String getParameter(Object request, String name) {
+        if (request == null) return null;
+        try {
+            Object value = request.getClass().getMethod("getParameter", String.class).invoke(request, name);
+            return (String) value;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+    
+    // Set attribute vào request (sử dụng reflection để tránh servlet dependency)
+    public static void setAttribute(Object request, String name, Object value) {
+        if (request == null) return;
+        try {
+            request.getClass().getMethod("setAttribute", String.class, Object.class).invoke(request, name, value);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }

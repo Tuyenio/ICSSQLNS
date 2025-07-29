@@ -14,6 +14,9 @@ public class CongViec {
     private int nhomId;
     private String trangThai;
     private Timestamp ngayTao;
+    private String ghiChu;
+    private Date ngayBatDau;
+    private Date ngayKetThuc;
     
     // Thông tin join
     private String tenNguoiGiao;
@@ -149,16 +152,39 @@ public class CongViec {
         this.phanTramTienDo = phanTramTienDo;
     }
     
+    // Additional getter and setter methods for compatibility
+    public int getNguoiThucHienId() {
+        return this.nguoiNhanId;
+    }
+    
+    public void setNguoiThucHienId(int nguoiThucHienId) {
+        this.nguoiNhanId = nguoiThucHienId;
+    }
+    
+    public String getGhiChu() {
+        return ghiChu;
+    }
+    
+    public void setGhiChu(String ghiChu) {
+        this.ghiChu = ghiChu;
+    }
+    
     // Additional methods for JSP compatibility
     public String getNguoiNhan() {
         return this.tenNguoiNhan; // Return name of assignee
     }
     
     public Date getNgayBatDau() {
+        if (this.ngayBatDau != null) {
+            return this.ngayBatDau;
+        }
         return this.ngayTao != null ? new Date(this.ngayTao.getTime()) : null; // Use creation date as start date
     }
     
     public Date getNgayKetThuc() {
+        if (this.ngayKetThuc != null) {
+            return this.ngayKetThuc;
+        }
         return this.hanHoanThanh; // Use deadline as end date
     }
     
@@ -172,6 +198,7 @@ public class CongViec {
     }
     
     public void setNgayBatDau(Date ngayBatDau) {
+        this.ngayBatDau = ngayBatDau;
         // Set creation date based on start date
         if (ngayBatDau != null) {
             this.ngayTao = new Timestamp(ngayBatDau.getTime());
@@ -179,6 +206,7 @@ public class CongViec {
     }
     
     public void setNgayKetThuc(Date ngayKetThuc) {
+        this.ngayKetThuc = ngayKetThuc;
         this.hanHoanThanh = ngayKetThuc;
     }
 }

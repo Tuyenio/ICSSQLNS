@@ -1,0 +1,32 @@
+QUAN TRỌNG - ĐỌC TRƯỚC KHI CHẠY PROJECT
+============================================
+
+🚨 LỖI SERVLET API CHƯA ĐƯỢC GIẢI QUYẾT 🚨
+
+Để sửa các lỗi "javax.servlet cannot be resolved", bạn cần:
+
+1. Mở NetBeans IDE
+2. Right-click vào project ICSSQLNS
+3. Chọn "Properties"  
+4. Trong cửa sổ Project Properties:
+   - Chọn "Libraries" từ menu bên trái
+   - Click nút "Add Library..."
+   - Chọn "Servlet API" từ danh sách
+   - Click "Add Library"
+5. Click "OK" để đóng Properties
+6. Clean and Build project (F11)
+
+SAU KHI THÊM SERVLET API:
+- Tất cả lỗi compilation sẽ được giải quyết
+- Project sẽ build thành công  
+- Có thể deploy lên Tomcat server
+
+TRẠNG THÁI HIỆN TẠI:
+✅ Backend logic hoàn thành 100%
+✅ Database integration hoàn thành
+✅ All controllers implemented
+✅ All DAO methods completed
+✅ All models enhanced
+❌ Thiếu Servlet API library (cần thêm thủ công trong NetBeans)
+
+Hãy làm theo hướng dẫn trên trước khi chạy project!

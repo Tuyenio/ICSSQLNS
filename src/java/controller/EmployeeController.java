@@ -247,4 +247,40 @@ public class EmployeeController {
         
         return nhanVien;
     }
+    
+    // Tìm kiếm nhân viên
+    public List<NhanVien> searchEmployees(String keyword, String phongBan, String trangThai) {
+        return nhanVienDAO.searchNhanVien(keyword, phongBan, trangThai);
+    }
+    
+    // Đổi mật khẩu
+    public boolean changePassword(int id, String newPassword) {
+        return nhanVienDAO.changePassword(id, newPassword);
+    }
+    
+    // Lấy số lượng nhân viên
+    public int getTotalEmployees() {
+        return getAllEmployees().size();
+    }
+    
+    // Lấy số lượng nhân viên đang làm việc
+    public int getActiveEmployees() {
+        return (int) getAllEmployees().stream()
+                .filter(nv -> "DangLam".equals(nv.getTrangThaiLamViec()))
+                .count();
+    }
+    
+    // Lấy nhân viên theo phòng ban
+    public List<NhanVien> getEmployeesByDepartment(int phongBanId) {
+        return getAllEmployees().stream()
+                .filter(nv -> nv.getPhongBanId() == phongBanId)
+                .toList();
+    }
+    
+    // Lấy nhân viên theo vai trò
+    public List<NhanVien> getEmployeesByRole(String vaiTro) {
+        return getAllEmployees().stream()
+                .filter(nv -> vaiTro.equals(nv.getVaiTro()))
+                .toList();
+    }
 }

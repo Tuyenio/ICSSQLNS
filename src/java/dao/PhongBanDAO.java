@@ -37,6 +37,27 @@ public class PhongBanDAO {
         return list;
     }
     
+    // Lấy danh sách phòng ban cho dropdown (đơn giản)
+    public List<PhongBan> getPhongBanForDropdown() {
+        List<PhongBan> list = new ArrayList<>();
+        String sql = "SELECT id, ten_phong FROM phong_ban ORDER BY ten_phong";
+        
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            
+            while (rs.next()) {
+                PhongBan pb = new PhongBan();
+                pb.setId(rs.getInt("id"));
+                pb.setTenPhong(rs.getString("ten_phong"));
+                list.add(pb);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+    
     // Lấy phòng ban theo ID
     public PhongBan getPhongBanById(int id) {
         String sql = "SELECT pb.*, nv.ho_ten as ten_truong_phong, " +
@@ -203,24 +224,27 @@ public class PhongBanDAO {
         return false;
     }
     
-    // Lấy danh sách phòng ban cho dropdown
-    public List<PhongBan> getPhongBanForDropdown() {
-        List<PhongBan> list = new ArrayList<>();
-        String sql = "SELECT id, ten_phong FROM phong_ban ORDER BY ten_phong";
+    // Kiểm tra tên phòng ban đã tồn tại (không loại trừ)
+    public boolean isPhongBanExists(String tenPhong) {
+        String sql = "SELECT COUNT(*) FROM phong_ban WHERE ten_phong = ?";
         
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+             PreparedStatement ps = conn.prepareStatement(sql)) {
             
-            while (rs.next()) {
-                PhongBan pb = new PhongBan();
-                pb.setId(rs.getInt("id"));
-                pb.setTenPhong(rs.getString("ten_phong"));
-                list.add(pb);
+            ps.setString(1, tenPhong);
+            
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return list;
+        return false;
+    }
+    
+    // Kiểm tra tên phòng ban đã tồn tại (có loại trừ ID)
+    public boolean isPhongBanExistsExcludeId(String tenPhong, int excludeId) {
+        return isTenPhongExists(tenPhong, excludeId);
     }
 }

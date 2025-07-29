@@ -1,5 +1,6 @@
 package model;
 
+import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.Timestamp;
 
@@ -13,6 +14,7 @@ public class NhanVien {
     private Date ngaySinh;
     private int phongBanId;
     private String chucVu;
+    private BigDecimal luongCoBan;
     private String trangThaiLamViec;
     private String vaiTro;
     private Date ngayVaoLam;
@@ -113,6 +115,14 @@ public class NhanVien {
     
     public void setChucVu(String chucVu) {
         this.chucVu = chucVu;
+    }
+    
+    public BigDecimal getLuongCoBan() {
+        return luongCoBan;
+    }
+    
+    public void setLuongCoBan(BigDecimal luongCoBan) {
+        this.luongCoBan = luongCoBan;
     }
     
     public String getTrangThaiLamViec() {

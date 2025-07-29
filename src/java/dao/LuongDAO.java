@@ -277,4 +277,98 @@ public class LuongDAO {
         
         return luong;
     }
+    
+    // Calculate salary for an employee
+    public BigDecimal calculateSalary(int nhanVienId, int thang, int nam) {
+        String sql = "SELECT luong_co_ban FROM nhanvien WHERE id = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, nhanVienId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getBigDecimal("luong_co_ban");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return BigDecimal.ZERO;
+    }
+    
+    // Get salary by month and year (alias for getLuongByMonth)
+    public List<Luong> getLuongByThangNam(int thang, int nam) {
+        return getLuongByMonth(thang, nam);
+    }
+    
+    // Approve salary
+    public boolean approveLuong(int id) {
+        String sql = "UPDATE luong SET trang_thai = 'Đã duyệt' WHERE id = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+    
+    // Reject salary
+    public boolean rejectLuong(int id, String lyDo) {
+        String sql = "UPDATE luong SET trang_thai = 'Từ chối', ghi_chu = ? WHERE id = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, lyDo);
+            ps.setInt(2, id);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+    
+    // Get total salary by month
+    public BigDecimal getTongLuongTheoThang(java.util.Date date) {
+        java.util.Calendar cal = java.util.Calendar.getInstance();
+        cal.setTime(date);
+        int thang = cal.get(java.util.Calendar.MONTH) + 1;
+        int nam = cal.get(java.util.Calendar.YEAR);
+        return getTongLuongThang(thang, nam);
+    }
+    
+    // Get average salary
+    public BigDecimal getLuongTrungBinh() {
+        String sql = "SELECT AVG(luong_thuc_te) as luong_tb FROM luong WHERE trang_thai = 'Đã trả'";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                return rs.getBigDecimal("luong_tb");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return BigDecimal.ZERO;
+    }
+    
+    // Get number of employees paid
+    public int getSoNhanVienDuocTraLuong(java.util.Date date) {
+        java.util.Calendar cal = java.util.Calendar.getInstance();
+        cal.setTime(date);
+        int thang = cal.get(java.util.Calendar.MONTH) + 1;
+        int nam = cal.get(java.util.Calendar.YEAR);
+        
+        String sql = "SELECT COUNT(DISTINCT nhan_vien_id) as so_nv FROM luong WHERE thang = ? AND nam = ? AND trang_thai = 'Đã trả'";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, thang);
+            ps.setInt(2, nam);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("so_nv");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
 }

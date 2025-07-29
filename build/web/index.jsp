@@ -355,16 +355,25 @@
                                 <div class="col-md-8">
                                     <!-- Biểu đồ tiến độ tổng thể -->
                                     <div class="progress mt-2" style="height: 18px;">
-                                        <% 
+                                        <%
                                         double pctHoanThanh = tongCongViec > 0 ? (double) congViecDaHoanThanh / tongCongViec * 100 : 0;
                                         double pctDangLam = tongCongViec > 0 ? (double) congViecDangThucHien / tongCongViec * 100 : 0;
                                         double pctTreHan = tongCongViec > 0 ? (double) congViecTreHan / tongCongViec * 100 : 0;
                                         double pctChuaBatDau = tongCongViec > 0 ? (double) congViecChuaBatDau / tongCongViec * 100 : 0;
                                         %>
-                                        <div class="progress-bar bg-success" style="width: <%= pctHoanThanh %>%"><%= String.format("%.0f", pctHoanThanh) %>% Hoàn thành</div>
-                                        <div class="progress-bar bg-warning" style="width: <%= pctDangLam %>%"><%= String.format("%.0f", pctDangLam) %>% Đang làm</div>
-                                        <div class="progress-bar bg-info" style="width: <%= pctChuaBatDau %>%"><%= String.format("%.0f", pctChuaBatDau) %>% Chưa bắt đầu</div>
-                                        <div class="progress-bar bg-danger" style="width: <%= pctTreHan %>%"><%= String.format("%.0f", pctTreHan) %>% Trễ</div>
+                                        <div class="progress-bar bg-success" data-width="<%= pctHoanThanh %>"><%= String.format("%.0f", pctHoanThanh) %>% Hoàn thành</div>
+                                        <div class="progress-bar bg-warning" data-width="<%= pctDangLam %>"><%= String.format("%.0f", pctDangLam) %>% Đang làm</div>
+                                        <div class="progress-bar bg-info" data-width="<%= pctChuaBatDau %>"><%= String.format("%.0f", pctChuaBatDau) %>% Chưa bắt đầu</div>
+                                        <div class="progress-bar bg-danger" data-width="<%= pctTreHan %>"><%= String.format("%.0f", pctTreHan) %>% Trễ</div>
+                                        
+                                        <script>
+                                        $(document).ready(function() {
+                                            $('.progress-bar').each(function() {
+                                                var width = $(this).data('width');
+                                                $(this).css('width', width + '%');
+                                            });
+                                        });
+                                        </script>
                                     </div>
                                     <div class="mt-2">
                                         <small class="text-muted">

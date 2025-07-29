@@ -2,6 +2,7 @@ package model;
 
 import java.sql.Date;
 import java.sql.Time;
+import java.sql.Timestamp;
 
 public class ChamCong {
     private int id;
@@ -9,6 +10,7 @@ public class ChamCong {
     private Date ngay;
     private Time checkIn;
     private Time checkOut;
+    private Timestamp ngayTao;
     
     // Join fields
     private String hoTenNhanVien;
@@ -79,6 +81,14 @@ public class ChamCong {
     
     public void setTenPhongBan(String tenPhongBan) {
         this.tenPhongBan = tenPhongBan;
+    }
+    
+    public Timestamp getNgayTao() {
+        return ngayTao;
+    }
+    
+    public void setNgayTao(Timestamp ngayTao) {
+        this.ngayTao = ngayTao;
     }
     
     // Helper methods
