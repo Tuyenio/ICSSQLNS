@@ -1,4 +1,19 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page import="java.util.List, model.PhongBan" %>
+
+<%
+    // Lấy dữ liệu từ request
+    List<PhongBan> danhSachPhongBan = (List<PhongBan>) request.getAttribute("danhSachPhongBan");
+    String successMsg = (String) request.getAttribute("successMsg");
+    String errorMsg = (String) request.getAttribute("errorMsg");
+    
+    // Nếu chưa có dữ liệu, redirect tới handler để lấy dữ liệu
+    if (danhSachPhongBan == null) {
+        RequestDispatcher dispatcher = request.getRequestDispatcher("/department_handler.jsp");
+        dispatcher.forward(request, response);
+        return;
+    }
+%>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -144,28 +159,51 @@
                             </tr>
                         </thead>
                         <tbody id="departmentTableBody">
-                            <!-- AJAX load phòng ban -->
+                            <% 
+                                if (danhSachPhongBan != null && !danhSachPhongBan.isEmpty()) {
+                                    for (int i = 0; i < danhSachPhongBan.size(); i++) {
+                                        PhongBan pb = danhSachPhongBan.get(i);
+                            %>
                             <tr>
-                                <td>1</td>
-                                <td>Kỹ thuật</td>
+                                <td><%= (i + 1) %></td>
+                                <td><%= pb.getTenPhongBan() != null ? pb.getTenPhongBan() : "" %></td>
                                 <td>
-                                    <img src="https://i.pravatar.cc/40?img=1" class="rounded-circle me-1" width="28">
-                                    <span class="fw-semibold text-primary">Nguyễn Văn A</span>
+                                    <img src="https://i.pravatar.cc/40?img=<%= (i % 10) + 1 %>" class="rounded-circle me-1" width="28">
+                                    <span class="fw-semibold text-primary"><%= pb.getTruongPhong() != null ? pb.getTruongPhong() : "Chưa có" %></span>
+                                    <% if (pb.getTruongPhong() != null && !pb.getTruongPhong().isEmpty()) { %>
                                     <span class="badge bg-info ms-1">Trưởng phòng</span>
+                                    <% } %>
                                 </td>
                                 <td>
-                                    <span class="badge bg-primary">Nguyễn Văn A</span>
-                                    <span class="badge bg-secondary">Trần Thị B</span>
-                                    <span class="badge bg-light text-dark">Tổng: 2</span>
+                                    <span class="badge bg-light text-dark">Tổng: <%= pb.getSoLuongNhanVien() %> nhân viên</span>
                                 </td>
-                                <td>01/06/2024</td>
+                                <td><%= pb.getNgayTao() != null ? pb.getNgayTao().toString() : "" %></td>
                                 <td>
-                                    <button class="btn btn-sm btn-warning edit-dept-btn"><i class="fa-solid fa-pen"></i></button>
-                                    <button class="btn btn-sm btn-danger delete-dept-btn"><i class="fa-solid fa-trash"></i></button>
-                                    <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#modalDeptDetail"><i class="fa-solid fa-eye"></i></button>
+                                    <button class="btn btn-sm btn-warning edit-dept-btn" 
+                                            data-id="<%= pb.getId() %>"
+                                            data-name="<%= pb.getTenPhongBan() %>"
+                                            data-desc="<%= pb.getMoTa() != null ? pb.getMoTa() : "" %>"
+                                            data-manager="<%= pb.getTruongPhong() != null ? pb.getTruongPhong() : "" %>"
+                                            data-phone="<%= pb.getDienThoai() != null ? pb.getDienThoai() : "" %>"
+                                            data-email="<%= pb.getEmail() != null ? pb.getEmail() : "" %>">
+                                        <i class="fa-solid fa-pen"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-danger delete-dept-btn" data-id="<%= pb.getId() %>">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#modalDeptDetail">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </button>
                                 </td>
                             </tr>
-                            <!-- ... -->
+                            <% 
+                                    }
+                                } else {
+                            %>
+                            <tr>
+                                <td colspan="6" class="text-center">Không có dữ liệu</td>
+                            </tr>
+                            <% } %>
                         </tbody>
                     </table>
                 </div>
@@ -173,28 +211,33 @@
             <!-- Modal Thêm/Sửa phòng ban -->
             <div class="modal fade" id="modalDepartment" tabindex="-1">
                 <div class="modal-dialog">
-                    <form class="modal-content" id="departmentForm">
+                    <form class="modal-content" id="departmentForm" method="post" action="department_handler.jsp">
                         <div class="modal-header">
                             <h5 class="modal-title"><i class="fa-solid fa-building"></i> Thông tin phòng ban</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                         </div>
                         <div class="modal-body">
                             <input type="hidden" id="deptId" name="id">
+                            <input type="hidden" id="formAction" name="action" value="add">
                             <div class="mb-3">
                                 <label class="form-label">Tên phòng ban</label>
-                                <input type="text" class="form-control" id="deptName" name="ten_phong" required>
+                                <input type="text" class="form-control" id="deptName" name="tenPhongBan" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Mô tả</label>
+                                <textarea class="form-control" id="deptDesc" name="moTa" rows="3"></textarea>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Trưởng phòng</label>
-                                <select class="form-select" id="deptLeader" name="truong_phong_id">
-                                    <!-- AJAX load nhân viên -->
-                                </select>
+                                <input type="text" class="form-control" id="deptLeader" name="truongPhong" placeholder="Tên trưởng phòng">
                             </div>
                             <div class="mb-3">
-                                <label class="form-label">Nhân viên</label>
-                                <select class="form-select" id="deptMembers" name="members" multiple>
-                                    <!-- AJAX load nhân viên -->
-                                </select>
+                                <label class="form-label">Điện thoại</label>
+                                <input type="text" class="form-control" id="deptPhone" name="dienThoai" placeholder="Số điện thoại">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" id="deptEmail" name="email" placeholder="Email phòng ban">
                             </div>
                         </div>
                         <div class="modal-footer">
@@ -315,40 +358,91 @@
     </div>
 </div>
 <script>
+$(document).ready(function() {
+    // Nút thêm mới
+    $('#btnAddDept').on('click', function() {
+        $('#departmentForm')[0].reset();
+        $('#formAction').val('add');
+        $('#deptId').val('');
+        $('.modal-title').html('<i class="fa-solid fa-building"></i> Thêm phòng ban mới');
+        $('#modalDepartment').modal('show');
+    });
+
     // Nút sửa
     $(document).on('click', '.edit-dept-btn', function() {
-        // TODO: Load dữ liệu lên form
+        var id = $(this).data('id');
+        var name = $(this).data('name');
+        var desc = $(this).data('desc');
+        var manager = $(this).data('manager');
+        var phone = $(this).data('phone');
+        var email = $(this).data('email');
+        
+        $('#formAction').val('update');
+        $('#deptId').val(id);
+        $('#deptName').val(name);
+        $('#deptDesc').val(desc);
+        $('#deptLeader').val(manager);
+        $('#deptPhone').val(phone);
+        $('#deptEmail').val(email);
+        $('.modal-title').html('<i class="fa-solid fa-building"></i> Cập nhật phòng ban');
         $('#modalDepartment').modal('show');
     });
 
     // Nút xoá
     $(document).on('click', '.delete-dept-btn', function() {
+        var id = $(this).data('id');
         Swal.fire({
             title: 'Xác nhận xoá?',
+            text: 'Bạn có chắc chắn muốn xóa phòng ban này?',
             icon: 'warning',
             showCancelButton: true,
             confirmButtonText: 'Xoá',
             cancelButtonText: 'Huỷ'
         }).then((result) => {
             if (result.isConfirmed) {
-                // TODO: AJAX xoá
-                $('#toastSuccess').toast('show');
+                // Tạo form để submit
+                var form = $('<form>', {
+                    'method': 'POST',
+                    'action': 'department_handler.jsp'
+                });
+                form.append($('<input>', {
+                    'type': 'hidden',
+                    'name': 'action',
+                    'value': 'delete'
+                }));
+                form.append($('<input>', {
+                    'type': 'hidden',
+                    'name': 'id',
+                    'value': id
+                }));
+                $('body').append(form);
+                form.submit();
             }
         });
     });
 
-    // Submit form thêm/sửa
-    $('#departmentForm').on('submit', function(e) {
-        e.preventDefault();
-        // TODO: AJAX submit form
-        $('#modalDepartment').modal('hide');
-        $('#toastSuccess').toast('show');
-    });
-
     // Toast init
-    $('.toast').toast({ delay: 2000 });
+    $('.toast').toast({ delay: 3000 });
+});
+</script>
 
-    // TODO: AJAX load phòng ban, nhân viên cho select
+<% if (successMsg != null) { %>
+<script>
+$(document).ready(function() {
+    $('#toastSuccess .toast-body').text('<%= successMsg %>');
+    $('#toastSuccess').toast('show');
+});
+</script>
+<% } %>
+
+<% if (errorMsg != null) { %>
+<script>
+$(document).ready(function() {
+    $('#toastError .toast-body').text('<%= errorMsg %>');
+    $('#toastError').toast('show');
+});
+</script>
+<% } %>
     // TODO: AJAX load lịch sử thay đổi phòng ban từ nhan_su_lich_su
 </script>
 </body>

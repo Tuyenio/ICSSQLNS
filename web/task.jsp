@@ -1,4 +1,20 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page import="java.util.List, model.CongViec, model.NhanVien" %>
+
+<%
+    // Lấy dữ liệu từ request
+    List<CongViec> danhSachCongViec = (List<CongViec>) request.getAttribute("danhSachCongViec");
+    List<NhanVien> danhSachNhanVien = (List<NhanVien>) request.getAttribute("danhSachNhanVien");
+    String successMsg = (String) request.getAttribute("successMsg");
+    String errorMsg = (String) request.getAttribute("errorMsg");
+    
+    // Nếu chưa có dữ liệu, redirect tới handler để lấy dữ liệu
+    if (danhSachCongViec == null) {
+        RequestDispatcher dispatcher = request.getRequestDispatcher("/task_handler.jsp");
+        dispatcher.forward(request, response);
+        return;
+    }
+%>
     <!DOCTYPE html>
     <html lang="vi">
 
@@ -368,185 +384,275 @@
                                     data-bs-target="#modalTask">
                                     <i class="fa-solid fa-plus"></i> Thêm task
                                 </button>
+                                <%
+                                if (danhSachCongViec != null) {
+                                    for (CongViec cv : danhSachCongViec) {
+                                        if ("ChuaBatDau".equals(cv.getTrangThai())) {
+                                %>
                                 <div class="kanban-task" data-bs-toggle="modal" data-bs-target="#modalTaskDetail">
-                                    <div class="task-title">Thiết kế giao diện</div>
-                                    <div class="task-meta">Người giao: <b>Admin</b> | Người nhận: <b>Nguyễn Văn A</b>
+                                    <div class="task-title"><%= cv.getTenCongViec() %></div>
+                                    <div class="task-meta">
+                                        Người giao: <b><%= cv.getTenNguoiGiao() != null ? cv.getTenNguoiGiao() : "N/A" %></b> | 
+                                        Người nhận: <b><%= cv.getTenNguoiNhan() != null ? cv.getTenNguoiNhan() : "N/A" %></b>
                                     </div>
-                                    <span class="task-priority badge bg-danger">Cao</span>
+                                    <% 
+                                        String priorityClass = "bg-info";
+                                        String priorityText = cv.getMucDoUuTien();
+                                        if ("Cao".equals(priorityText)) {
+                                            priorityClass = "bg-danger";
+                                        } else if ("Trung binh".equals(priorityText)) {
+                                            priorityClass = "bg-warning text-dark";
+                                        } else if ("Thap".equals(priorityText)) {
+                                            priorityClass = "bg-success";
+                                        }
+                                    %>
+                                    <span class="task-priority badge <%= priorityClass %>"><%= priorityText %></span>
                                     <span class="task-status badge bg-secondary">Chưa bắt đầu</span>
                                     <div class="progress">
                                         <div class="progress-bar bg-secondary" style="width: 0%"></div>
                                     </div>
                                     <div class="task-actions">
-                                        <button class="btn btn-sm btn-warning"><i class="fa-solid fa-pen"></i></button>
-                                        <button class="btn btn-sm btn-danger"><i class="fa-solid fa-trash"></i></button>
+                                        <button class="btn btn-sm btn-warning edit-task-btn" 
+                                                data-id="<%= cv.getId() %>"
+                                                data-name="<%= cv.getTenCongViec() %>"
+                                                data-desc="<%= cv.getMoTa() != null ? cv.getMoTa() : "" %>"
+                                                data-assignee="<%= cv.getNguoiNhan() %>"
+                                                data-priority="<%= cv.getMucDoUuTien() %>"
+                                                data-start="<%= cv.getNgayBatDau() %>"
+                                                data-end="<%= cv.getNgayKetThuc() %>">
+                                            <i class="fa-solid fa-pen"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger delete-task-btn" data-id="<%= cv.getId() %>">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
                                     </div>
                                 </div>
-                                <div class="kanban-task" data-bs-toggle="modal" data-bs-target="#modalTaskDetail">
-                                    <div class="task-title">Phân tích yêu cầu</div>
-                                    <div class="task-meta">Người giao: <b>Admin</b> | Người nhận: <b>Trần Văn B</b>
-                                    </div>
-                                    <span class="task-priority badge bg-danger">Cao</span>
-                                    <span class="task-status badge bg-secondary">Chưa bắt đầu</span>
-                                    <div class="progress">
-                                        <div class="progress-bar bg-secondary" style="width: 0%"></div>
-                                    </div>
-                                    <div class="task-actions">
-                                        <button class="btn btn-sm btn-warning"><i class="fa-solid fa-pen"></i></button>
-                                        <button class="btn btn-sm btn-danger"><i class="fa-solid fa-trash"></i></button>
-                                    </div>
-                                </div>
+                                <%
+                                        }
+                                    }
+                                }
+                                %>
                             </div>
                             <!-- Đang làm -->
                             <div class="kanban-col in-progress">
                                 <h5><i class="fa-solid fa-spinner"></i> Đang làm</h5>
+                                <%
+                                if (danhSachCongViec != null) {
+                                    for (CongViec cv : danhSachCongViec) {
+                                        if ("DangLam".equals(cv.getTrangThai())) {
+                                %>
                                 <div class="kanban-task" data-bs-toggle="modal" data-bs-target="#modalTaskDetail">
-                                    <div class="task-title">Phát triển backend</div>
-                                    <div class="task-meta">Người giao: <b>Admin</b> | Người thực hiện: <b>Trần Thị B</b>
+                                    <div class="task-title"><%= cv.getTenCongViec() %></div>
+                                    <div class="task-meta">
+                                        Người giao: <b><%= cv.getTenNguoiGiao() != null ? cv.getTenNguoiGiao() : "N/A" %></b> | 
+                                        Người thực hiện: <b><%= cv.getTenNguoiNhan() != null ? cv.getTenNguoiNhan() : "N/A" %></b>
                                     </div>
-                                    <span class="task-priority badge bg-warning text-dark">Trung bình</span>
+                                    <% 
+                                        String priorityClass = "bg-info";
+                                        String priorityText = cv.getMucDoUuTien();
+                                        if ("Cao".equals(priorityText)) {
+                                            priorityClass = "bg-danger";
+                                        } else if ("Trung binh".equals(priorityText)) {
+                                            priorityClass = "bg-warning text-dark";
+                                        } else if ("Thap".equals(priorityText)) {
+                                            priorityClass = "bg-success";
+                                        }
+                                    %>
+                                    <span class="task-priority badge <%= priorityClass %>"><%= priorityText %></span>
                                     <span class="task-status badge bg-warning text-dark">Đang làm</span>
                                     <div class="progress">
-                                        <div class="progress-bar bg-warning" style="width: 40%"></div>
+                                        <div class="progress-bar bg-warning" style="width: 50%"></div>
                                     </div>
                                     <div class="task-actions">
-                                        <button class="btn btn-sm btn-warning"><i class="fa-solid fa-pen"></i></button>
-                                        <button class="btn btn-sm btn-danger"><i class="fa-solid fa-trash"></i></button>
+                                        <button class="btn btn-sm btn-warning edit-task-btn" 
+                                                data-id="<%= cv.getId() %>"
+                                                data-name="<%= cv.getTenCongViec() %>"
+                                                data-desc="<%= cv.getMoTa() != null ? cv.getMoTa() : "" %>"
+                                                data-assignee="<%= cv.getNguoiNhan() %>"
+                                                data-priority="<%= cv.getMucDoUuTien() %>"
+                                                data-start="<%= cv.getNgayBatDau() %>"
+                                                data-end="<%= cv.getNgayKetThuc() %>">
+                                            <i class="fa-solid fa-pen"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger delete-task-btn" data-id="<%= cv.getId() %>">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
                                     </div>
                                 </div>
-                                <div class="kanban-task" data-bs-toggle="modal" data-bs-target="#modalTaskDetail">
-                                    <div class="task-title">Xây dựng API</div>
-                                    <div class="task-meta">Người giao: <b>Admin</b> | Người thực hiện: <b>Nguyễn Văn
-                                            A</b></div>
-                                    <span class="task-priority badge bg-warning text-dark">Trung bình</span>
-                                    <span class="task-status badge bg-warning text-dark">Đang làm</span>
-                                    <div class="progress">
-                                        <div class="progress-bar bg-warning" style="width: 60%"></div>
-                                    </div>
-                                    <div class="task-actions">
-                                        <button class="btn btn-sm btn-warning"><i class="fa-solid fa-pen"></i></button>
-                                        <button class="btn btn-sm btn-danger"><i class="fa-solid fa-trash"></i></button>
-                                    </div>
-                                </div>
+                                <%
+                                        }
+                                    }
+                                }
+                                %>
                             </div>
                             <!-- Hoàn thành -->
                             <div class="kanban-col completed">
                                 <h5><i class="fa-solid fa-check-circle"></i> Hoàn thành</h5>
+                                <%
+                                if (danhSachCongViec != null) {
+                                    for (CongViec cv : danhSachCongViec) {
+                                        if ("HoanThanh".equals(cv.getTrangThai())) {
+                                %>
                                 <div class="kanban-task" data-bs-toggle="modal" data-bs-target="#modalTaskDetail">
-                                    <div class="task-title">Kiểm thử hệ thống</div>
-                                    <div class="task-meta">Người giao: <b>Admin</b> | Người thực hiện: <b>Lê Văn C</b>
+                                    <div class="task-title"><%= cv.getTenCongViec() %></div>
+                                    <div class="task-meta">
+                                        Người giao: <b><%= cv.getTenNguoiGiao() != null ? cv.getTenNguoiGiao() : "N/A" %></b> | 
+                                        Người thực hiện: <b><%= cv.getTenNguoiNhan() != null ? cv.getTenNguoiNhan() : "N/A" %></b>
                                     </div>
-                                    <span class="task-priority badge bg-success">Thấp</span>
+                                    <% 
+                                        String priorityClass = "bg-info";
+                                        String priorityText = cv.getMucDoUuTien();
+                                        if ("Cao".equals(priorityText)) {
+                                            priorityClass = "bg-danger";
+                                        } else if ("Trung binh".equals(priorityText)) {
+                                            priorityClass = "bg-warning text-dark";
+                                        } else if ("Thap".equals(priorityText)) {
+                                            priorityClass = "bg-success";
+                                        }
+                                    %>
+                                    <span class="task-priority badge <%= priorityClass %>"><%= priorityText %></span>
                                     <span class="task-status badge bg-success">Hoàn thành</span>
                                     <div class="progress">
                                         <div class="progress-bar bg-success" style="width: 100%"></div>
                                     </div>
                                     <div class="task-actions">
-                                        <button class="btn btn-sm btn-warning"><i class="fa-solid fa-pen"></i></button>
-                                        <button class="btn btn-sm btn-danger"><i class="fa-solid fa-trash"></i></button>
+                                        <button class="btn btn-sm btn-warning edit-task-btn" 
+                                                data-id="<%= cv.getId() %>"
+                                                data-name="<%= cv.getTenCongViec() %>"
+                                                data-desc="<%= cv.getMoTa() != null ? cv.getMoTa() : "" %>"
+                                                data-assignee="<%= cv.getNguoiNhan() %>"
+                                                data-priority="<%= cv.getMucDoUuTien() %>"
+                                                data-start="<%= cv.getNgayBatDau() %>"
+                                                data-end="<%= cv.getNgayKetThuc() %>">
+                                            <i class="fa-solid fa-pen"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger delete-task-btn" data-id="<%= cv.getId() %>">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
                                     </div>
                                 </div>
-                                <div class="kanban-task" data-bs-toggle="modal" data-bs-target="#modalTaskDetail">
-                                    <div class="task-title">Viết tài liệu hướng dẫn</div>
-                                    <div class="task-meta">Người giao: <b>Admin</b> | Người thực hiện: <b>Nguyễn Văn
-                                            A</b></div>
-                                    <span class="task-priority badge bg-success">Thấp</span>
-                                    <span class="task-status badge bg-success">Hoàn thành</span>
-                                    <div class="progress">
-                                        <div class="progress-bar bg-success" style="width: 100%"></div>
-                                    </div>
-                                    <div class="task-actions">
-                                        <button class="btn btn-sm btn-warning"><i class="fa-solid fa-pen"></i></button>
-                                        <button class="btn btn-sm btn-danger"><i class="fa-solid fa-trash"></i></button>
-                                    </div>
-                                </div>
+                                <%
+                                        }
+                                    }
+                                }
+                                %>
                             </div>
                             <!-- Trễ hạn -->
                             <div class="kanban-col late">
                                 <h5><i class="fa-solid fa-exclamation-circle"></i> Trễ hạn</h5>
+                                <%
+                                if (danhSachCongViec != null) {
+                                    java.util.Date currentDate = new java.util.Date();
+                                    for (CongViec cv : danhSachCongViec) {
+                                        if (cv.getNgayKetThuc() != null && cv.getNgayKetThuc().before(currentDate) && !"HoanThanh".equals(cv.getTrangThai())) {
+                                %>
                                 <div class="kanban-task" data-bs-toggle="modal" data-bs-target="#modalTaskDetail">
-                                    <div class="task-title">Báo cáo tiến độ</div>
-                                    <div class="task-meta">Người giao: <b>Admin</b> | Người thực hiện: <b>Nguyễn Văn
-                                            A</b></div>
-                                    <span class="task-priority badge bg-danger">Cao</span>
-                                    <span class="task-status badge bg-danger">Trễ hạn</span>
-                                    <div class="progress">
-                                        <div class="progress-bar bg-danger" style="width: 60%"></div>
-                                    </div>
-                                    <div class="task-actions">
-                                        <button class="btn btn-sm btn-warning"><i class="fa-solid fa-pen"></i></button>
-                                        <button class="btn btn-sm btn-danger"><i class="fa-solid fa-trash"></i></button>
-                                    </div>
-                                </div>
-                                <div class="kanban-task" data-bs-toggle="modal" data-bs-target="#modalTaskDetail">
-                                    <div class="task-title">Cập nhật tài liệu</div>
-                                    <div class="task-meta">Người giao: <b>Admin</b> | Người thực hiện: <b>Trần Văn B</b>
+                                    <div class="task-title"><%= cv.getTenCongViec() %></div>
+                                    <div class="task-meta">
+                                        Người giao: <b><%= cv.getTenNguoiGiao() != null ? cv.getTenNguoiGiao() : "N/A" %></b> | 
+                                        Người thực hiện: <b><%= cv.getTenNguoiNhan() != null ? cv.getTenNguoiNhan() : "N/A" %></b>
                                     </div>
                                     <span class="task-priority badge bg-danger">Cao</span>
                                     <span class="task-status badge bg-danger">Trễ hạn</span>
                                     <div class="progress">
-                                        <div class="progress-bar bg-danger" style="width: 80%"></div>
+                                        <div class="progress-bar bg-danger" style="width: 70%"></div>
                                     </div>
                                     <div class="task-actions">
-                                        <button class="btn btn-sm btn-warning"><i class="fa-solid fa-pen"></i></button>
-                                        <button class="btn btn-sm btn-danger"><i class="fa-solid fa-trash"></i></button>
+                                        <button class="btn btn-sm btn-warning edit-task-btn" 
+                                                data-id="<%= cv.getId() %>"
+                                                data-name="<%= cv.getTenCongViec() %>"
+                                                data-desc="<%= cv.getMoTa() != null ? cv.getMoTa() : "" %>"
+                                                data-assignee="<%= cv.getNguoiNhan() %>"
+                                                data-priority="<%= cv.getMucDoUuTien() %>"
+                                                data-start="<%= cv.getNgayBatDau() %>"
+                                                data-end="<%= cv.getNgayKetThuc() %>">
+                                            <i class="fa-solid fa-pen"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger delete-task-btn" data-id="<%= cv.getId() %>">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
                                     </div>
                                 </div>
+                                <%
+                                        }
+                                    }
+                                }
+                                %>
                             </div>
                         </div>
                         <!-- Modal tạo/sửa task -->
                         <div class="modal fade" id="modalTask" tabindex="-1">
                             <div class="modal-dialog">
-                                <form class="modal-content" id="taskForm" enctype="multipart/form-data">
+                                <form class="modal-content" id="taskForm" method="post" action="task_handler.jsp">
                                     <div class="modal-header">
                                         <h5 class="modal-title"><i class="fa-solid fa-tasks"></i> Thông tin công việc
                                         </h5>
                                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                     </div>
                                     <div class="modal-body">
-                                        <input type="hidden" name="id">
+                                        <input type="hidden" name="id" id="taskId">
+                                        <input type="hidden" name="action" id="taskAction" value="add">
                                         <div class="mb-3">
                                             <label class="form-label">Tên công việc</label>
-                                            <input type="text" class="form-control" name="ten_cong_viec" required>
+                                            <input type="text" class="form-control" name="tenCongViec" id="taskName" required>
                                         </div>
                                         <div class="mb-3">
                                             <label class="form-label">Mô tả</label>
-                                            <textarea class="form-control" name="mo_ta" id="taskMoTa"></textarea>
+                                            <textarea class="form-control" name="moTa" id="taskDesc" rows="3"></textarea>
                                         </div>
                                         <div class="mb-3">
-                                            <label class="form-label">Hạn hoàn thành</label>
-                                            <input type="date" class="form-control" name="han_hoan_thanh">
+                                            <label class="form-label">Ngày bắt đầu</label>
+                                            <input type="date" class="form-control" name="ngayBatDau" id="taskStartDate">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Ngày kết thúc</label>
+                                            <input type="date" class="form-control" name="ngayKetThuc" id="taskEndDate">
                                         </div>
                                         <div class="mb-3">
                                             <label class="form-label">Mức độ ưu tiên</label>
-                                            <select class="form-select" name="muc_do_uu_tien">
+                                            <select class="form-select" name="mucDoUuTien" id="taskPriority">
                                                 <option value="Thap">Thấp</option>
-                                                <option value="TrungBinh" selected>Trung bình</option>
+                                                <option value="Trung binh" selected>Trung bình</option>
                                                 <option value="Cao">Cao</option>
                                             </select>
                                         </div>
                                         <div class="mb-3">
                                             <label class="form-label">Người giao</label>
-                                            <select class="form-select" name="nguoi_giao_id">
-                                                <!-- AJAX load nhân viên -->
+                                            <select class="form-select" name="nguoiGiao" id="taskAssigner">
+                                                <option value="">-- Chọn người giao --</option>
+                                                <%
+                                                if (danhSachNhanVien != null) {
+                                                    for (NhanVien nv : danhSachNhanVien) {
+                                                %>
+                                                <option value="<%= nv.getId() %>"><%= nv.getHoTen() %></option>
+                                                <%
+                                                    }
+                                                }
+                                                %>
                                             </select>
                                         </div>
                                         <div class="mb-3">
                                             <label class="form-label">Người nhận</label>
-                                            <select class="form-select" name="nguoi_nhan_id">
-                                                <!-- AJAX load nhân viên -->
+                                            <select class="form-select" name="nguoiNhan" id="taskAssignee">
+                                                <option value="">-- Chọn người nhận --</option>
+                                                <%
+                                                if (danhSachNhanVien != null) {
+                                                    for (NhanVien nv : danhSachNhanVien) {
+                                                %>
+                                                <option value="<%= nv.getId() %>"><%= nv.getHoTen() %></option>
+                                                <%
+                                                    }
+                                                }
+                                                %>
                                             </select>
                                         </div>
                                         <div class="mb-3">
-                                            <label class="form-label">Nhóm công việc</label>
-                                            <select class="form-select" name="nhom_id">
-                                                <!-- AJAX load nhóm -->
+                                            <label class="form-label">Trạng thái</label>
+                                            <select class="form-select" name="trangThai" id="taskStatus">
+                                                <option value="ChuaBatDau">Chưa bắt đầu</option>
+                                                <option value="DangLam">Đang làm</option>
+                                                <option value="HoanThanh">Hoàn thành</option>
                                             </select>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">File đính kèm</label>
-                                            <input type="file" class="form-control" name="file_dinh_kem"
-                                                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
                                         </div>
                                     </div>
                                     <div class="modal-footer">
@@ -935,16 +1041,35 @@
                 renderProcessSteps();
             });
         </script>
-    </body>
 
-    </html>
-    renderProcessSteps();
-    $('#modalAddProcessStep').modal('hide');
-    });
-    $('#modalTaskDetail').on('show.bs.modal', function() {
-    renderProcessSteps();
-    });
-    </script>
+        <% if (successMsg != null) { %>
+        <script>
+        $(document).ready(function() {
+            Swal.fire({
+                icon: 'success',
+                title: 'Thành công!',
+                text: '<%= successMsg %>',
+                timer: 2000,
+                showConfirmButton: false
+            });
+        });
+        </script>
+        <% } %>
+
+        <% if (errorMsg != null) { %>
+        <script>
+        $(document).ready(function() {
+            Swal.fire({
+                icon: 'error',
+                title: 'Lỗi!',
+                text: '<%= errorMsg %>',
+                timer: 3000,
+                showConfirmButton: false
+            });
+        });
+        </script>
+        <% } %>
+
     </body>
 
     </html>

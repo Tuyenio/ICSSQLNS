@@ -1,8 +1,19 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ page import="java.util.List, java.util.Map" %>
+<%@ page import="java.util.List, model.NhanVien, model.PhongBan" %>
 
 <%
-    List<Map<String, Object>> danhSach = (List<Map<String, Object>>) request.getAttribute("danhSach");
+    // Lấy dữ liệu từ request
+    List<NhanVien> danhSach = (List<NhanVien>) request.getAttribute("danhSach");
+    List<PhongBan> danhSachPhongBan = (List<PhongBan>) request.getAttribute("danhSachPhongBan");
+    String successMsg = (String) request.getAttribute("successMsg");
+    String errorMsg = (String) request.getAttribute("errorMsg");
+    
+    // Nếu chưa có dữ liệu, redirect tới handler để lấy dữ liệu
+    if (danhSach == null) {
+        RequestDispatcher dispatcher = request.getRequestDispatcher("/employee_handler.jsp");
+        dispatcher.forward(request, response);
+        return;
+    }
 %>
 <!DOCTYPE html>
 <html lang="vi">
@@ -224,6 +235,21 @@
                 <%@ include file="header.jsp" %>
                 <!-- Main content -->
                 <div class="main-content">
+                    <!-- Thông báo -->
+                    <% if (successMsg != null) { %>
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="fa-solid fa-check-circle me-2"></i><%= successMsg %>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    <% } %>
+                    
+                    <% if (errorMsg != null) { %>
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="fa-solid fa-exclamation-circle me-2"></i><%= errorMsg %>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    <% } %>
+                    
                     <div class="main-box">
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <h3 class="mb-0"><i class="fa-solid fa-users me-2"></i>Quản lý Nhân sự</h3>
@@ -288,41 +314,68 @@
                                 <tbody id="employeeTableBody">
                                     <%
                 if (danhSach != null && !danhSach.isEmpty()) {
-                    for (Map<String, Object> nv : danhSach) {
+                    for (NhanVien nv : danhSach) {
                                     %>
                                     <tr>
-                                        <td><%= nv.get("id") %></td>
-                                        <td><img src="https://i.pravatar.cc/40?img=1" class="rounded-circle"
+                                        <td><%= nv.getId() %></td>
+                                        <td><img src="<%= nv.getAvatarUrl() != null ? nv.getAvatarUrl() : "https://ui-avatars.com/api/?name=" + java.net.URLEncoder.encode(nv.getHoTen(), "UTF-8") %>" class="rounded-circle"
                                                  width="36"></td>
-                                        <td><a href="#" class="emp-detail-link fw-semibold text-primary"><%= nv.get("ho_ten") %></a></td>
-                                        <td><%= nv.get("email") %></td>
-                                        <td><%= nv.get("so_dien_thoai") %></td>
-                                        <td><%= nv.get("gioi_tinh") %></td>
-                                        <td><%= nv.get("ngay_sinh") %></td>
-                                        <td><%= nv.get("ten_phong_ban") %></td>
-                                        <td><%= nv.get("chuc_vu") %></td>
-                                        <td><%= nv.get("ngay_vao_lam") %></td>
-                                        <td><span class="badge bg-success"><%= nv.get("trang_thai_lam_viec") %></span></td>
-                                        <td><span class="badge bg-info text-dark"><%= nv.get("vai_tro") %></span></td>
+                                        <td><a href="#" class="emp-detail-link fw-semibold text-primary"><%= nv.getHoTen() %></a></td>
+                                        <td><%= nv.getEmail() %></td>
+                                        <td><%= nv.getSoDienThoai() %></td>
+                                        <td><%= nv.getGioiTinh() %></td>
+                                        <td><%= nv.getNgaySinh() %></td>
+                                        <td><%= nv.getTenPhongBan() != null ? nv.getTenPhongBan() : "Chưa phân bổ" %></td>
+                                        <td><%= nv.getChucVu() %></td>
+                                        <td><%= nv.getNgayVaoLam() %></td>
+                                        <td>
+                                            <% 
+                                                String trangThai = nv.getTrangThaiLamViec();
+                                                String badgeClass = "bg-success";
+                                                String trangThaiText = "Đang làm";
+                                                if ("TamNghi".equals(trangThai)) {
+                                                    badgeClass = "bg-warning";
+                                                    trangThaiText = "Tạm nghỉ";
+                                                } else if ("NghiViec".equals(trangThai)) {
+                                                    badgeClass = "bg-danger";
+                                                    trangThaiText = "Nghỉ việc";
+                                                }
+                                            %>
+                                            <span class="badge <%= badgeClass %>"><%= trangThaiText %></span>
+                                        </td>
+                                        <td>
+                                            <% 
+                                                String vaiTro = nv.getVaiTro();
+                                                String roleClass = "bg-info";
+                                                String roleText = "Nhân viên";
+                                                if ("admin".equals(vaiTro)) {
+                                                    roleClass = "bg-danger";
+                                                    roleText = "Admin";
+                                                } else if ("quanly".equals(vaiTro)) {
+                                                    roleClass = "bg-warning text-dark";
+                                                    roleText = "Quản lý";
+                                                }
+                                            %>
+                                            <span class="badge <%= roleClass %>"><%= roleText %></span>
+                                        </td>
                                         <td class="action-btns">
                                             <button class="btn btn-sm btn-warning edit-emp-btn"
-                                                    data-id="<%= nv.get("id") %>"
-                                                    data-name="<%= nv.get("ho_ten") %>"
-                                                    data-email="<%= nv.get("email") %>"
-                                                    data-pass="<%= nv.get("mat_khau") %>"
-                                                    data-phone="<%= nv.get("so_dien_thoai") %>"
-                                                    data-gender="<%= nv.get("gioi_tinh") %>"
-                                                    data-birth="<%= nv.get("ngay_sinh") %>"
-                                                    data-startdate="<%= nv.get("ngay_vao_lam") %>"
-                                                    data-department="<%= nv.get("ten_phong_ban") %>"
-                                                    data-position="<%= nv.get("chuc_vu") %>"
-                                                    data-status="<%= nv.get("trang_thai_lam_viec") %>"
-                                                    data-role="<%= nv.get("vai_tro") %>"
-                                                    data-avatar="<%= nv.get("avatar_url") %>">
+                                                    data-id="<%= nv.getId() %>"
+                                                    data-name="<%= nv.getHoTen() %>"
+                                                    data-email="<%= nv.getEmail() %>"
+                                                    data-phone="<%= nv.getSoDienThoai() %>"
+                                                    data-gender="<%= nv.getGioiTinh() %>"
+                                                    data-birth="<%= nv.getNgaySinh() %>"
+                                                    data-startdate="<%= nv.getNgayVaoLam() %>"
+                                                    data-department="<%= nv.getPhongBanId() %>"
+                                                    data-position="<%= nv.getChucVu() %>"
+                                                    data-status="<%= nv.getTrangThaiLamViec() %>"
+                                                    data-role="<%= nv.getVaiTro() %>"
+                                                    data-avatar="<%= nv.getAvatarUrl() %>">
                                                 <i class="fa-solid fa-pen"></i>
                                             </button>
                                             <button class="btn btn-sm btn-danger delete-emp-btn"
-                                                    data-id="<%= nv.get("id") %>">
+                                                    data-id="<%= nv.getId() %>">
                                                 <i class="fa-solid fa-trash"></i>
                                             </button>
                                         </td>
@@ -332,7 +385,7 @@
                                         } else {
                                     %>
                                     <tr>
-                                        <td colspan="10" style="text-align:center;">Không có dữ liệu</td>
+                                        <td colspan="13" style="text-align:center;">Không có dữ liệu nhân viên</td>
                                     </tr>
                                     <%
                                         }
@@ -344,21 +397,22 @@
                     <!-- Modal Thêm/Sửa nhân viên -->
                     <div class="modal fade" id="modalEmployee" tabindex="-1">
                         <div class="modal-dialog">
-                            <form class="modal-content" id="employeeForm">
+                            <form class="modal-content" id="employeeForm" method="post" action="employee_handler.jsp">
                                 <div class="modal-header">
                                     <h5 class="modal-title"><i class="fa-solid fa-user-plus"></i> Thông tin nhân
                                         viên</h5>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                 </div>
                                 <div class="modal-body row g-3">
-                                    <input type="hidden" id="empId" name="empId">
+                                    <input type="hidden" id="empId" name="id">
+                                    <input type="hidden" id="empAction" name="action" value="add">
                                     <div class="col-md-12 text-center mb-2">
                                         <img id="avatarPreview" src="https://ui-avatars.com/api/?name=Avatar"
                                              class="rounded-circle" width="70" alt="Avatar">
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label" title="Họ tên đầy đủ">Họ tên</label>
-                                        <input type="text" class="form-control" id="empName" name="ho_ten" required>
+                                        <input type="text" class="form-control" id="empName" name="hoTen" required>
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label" title="Email công việc">Email</label>
@@ -367,18 +421,18 @@
                                     </div>
                                     <div class="col-md-6 position-relative">
                                         <label class="form-label" title="Mật khẩu đăng nhập">Mật khẩu</label>
-                                        <input type="password" class="form-control" id="empPassword" name="mat_khau" required>
+                                        <input type="password" class="form-control" id="empPassword" name="matKhau" required>
                                         <i class="fa-solid fa-eye position-absolute" id="togglePassword"
                                            style="top: 38px; right: 15px; cursor: pointer;"></i>
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label" title="Số điện thoại liên hệ">Số điện
                                             thoại</label>
-                                        <input type="text" class="form-control" id="empPhone" name="so_dien_thoai">
+                                        <input type="text" class="form-control" id="empPhone" name="soDienThoai">
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label" title="Giới tính">Giới tính</label>
-                                        <select class="form-select" id="empGender" name="gioi_tinh">
+                                        <select class="form-select" id="empGender" name="gioiTinh">
                                             <option value="Nam">Nam</option>
                                             <option value="Nữ">Nữ</option>
                                             <option value="Khác">Khác</option>
@@ -386,29 +440,36 @@
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label" title="Ngày sinh">Ngày sinh</label>
-                                        <input type="date" class="form-control" id="empBirth" name="ngay_sinh">
+                                        <input type="date" class="form-control" id="empBirth" name="ngaySinh">
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label" title="Ngày vào làm">Ngày vào làm</label>
                                         <input type="date" class="form-control" id="empStartDate"
-                                               name="ngay_vao_lam">
+                                               name="ngayVaoLam">
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label" title="Phòng ban">Phòng ban</label>
-                                        <select class="form-select" id="empDepartment" name="ten_phong_ban">
-                                            <option value="Phòng Nhân sự">Phòng Nhân sự</option>
-                                            <option value="Phòng Kỹ thuật">Phòng Kỹ thuật</option>
-                                            <option value="Phòng Kế toán">Phòng Kế toán</option>
+                                        <select class="form-select" id="empDepartment" name="phongBanId">
+                                            <option value="">-- Chọn phòng ban --</option>
+                                            <%
+                                                if (danhSachPhongBan != null) {
+                                                    for (PhongBan pb : danhSachPhongBan) {
+                                            %>
+                                            <option value="<%= pb.getId() %>"><%= pb.getTenPhongBan() %></option>
+                                            <%
+                                                    }
+                                                }
+                                            %>
                                         </select>
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label" title="Chức vụ">Chức vụ</label>
-                                        <input type="text" class="form-control" id="empPosition" name="chuc_vu">
+                                        <input type="text" class="form-control" id="empPosition" name="chucVu">
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label" title="Trạng thái làm việc">Trạng thái làm
                                             việc</label>
-                                        <select class="form-select" id="empStatus" name="trang_thai_lam_viec">
+                                        <select class="form-select" id="empStatus" name="trangThaiLamViec">
                                             <option value="DangLam" class="bg-success text-white">Đang làm</option>
                                             <option value="TamNghi" class="bg-warning text-dark">Tạm nghỉ</option>
                                             <option value="NghiViec" class="bg-danger text-white">Nghỉ việc</option>
@@ -416,7 +477,7 @@
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label" title="Vai trò hệ thống">Vai trò</label>
-                                        <select class="form-select" id="empRole" name="vai_tro">
+                                        <select class="form-select" id="empRole" name="vaiTro">
                                             <option value="admin" class="bg-danger text-white">Admin</option>
                                             <option value="quanly" class="bg-warning text-dark">Quản lý</option>
                                             <option value="nhanvien" class="bg-info text-dark">Nhân viên</option>
@@ -424,7 +485,7 @@
                                     </div>
                                     <div class="col-md-12">
                                         <label class="form-label" title="Link ảnh hoặc upload">Avatar</label>
-                                        <input type="url" class="form-control" id="empAvatar" name="avatar_url"
+                                        <input type="url" class="form-control" id="empAvatar" name="avatarUrl"
                                                placeholder="Link ảnh hoặc upload">
                                     </div>
                                 </div>
@@ -662,6 +723,22 @@
                 new bootstrap.Toast($(toastId)).show();
             }
         </script>
+
+        <% if (successMsg != null) { %>
+        <script>
+        $(document).ready(function() {
+            showToast('success', '<%= successMsg %>');
+        });
+        </script>
+        <% } %>
+
+        <% if (errorMsg != null) { %>
+        <script>
+        $(document).ready(function() {
+            showToast('error', '<%= errorMsg %>');
+        });
+        </script>
+        <% } %>
 
     </body>
 

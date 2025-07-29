@@ -1,24 +1,77 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <web-app version="4.0" xmlns="http://xmlns.jcp.org/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_4_0.xsd">
+    
+    <!-- Servlet mappings for main JSP files -->
     <servlet>
         <servlet-name>dsnhanvien</servlet-name>
-        <servlet-class>controller.dsnhanvien</servlet-class>
-    </servlet>
-    <servlet>
-        <servlet-name>XoaNhanVien</servlet-name>
-        <servlet-class>controller.XoaNhanVien</servlet-class>
+        <jsp-file>/employee.jsp</jsp-file>
     </servlet>
     <servlet-mapping>
         <servlet-name>dsnhanvien</servlet-name>
         <url-pattern>/dsnhanvien</url-pattern>
     </servlet-mapping>
+    
+    <servlet>
+        <servlet-name>dsphongban</servlet-name>
+        <jsp-file>/department.jsp</jsp-file>
+    </servlet>
     <servlet-mapping>
-        <servlet-name>XoaNhanVien</servlet-name>
-        <url-pattern>/xoaNhanvien</url-pattern>
+        <servlet-name>dsphongban</servlet-name>
+        <url-pattern>/dsphongban</url-pattern>
     </servlet-mapping>
+    
+    <servlet>
+        <servlet-name>dscongviec</servlet-name>
+        <jsp-file>/task.jsp</jsp-file>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>dscongviec</servlet-name>
+        <url-pattern>/dscongviec</url-pattern>
+    </servlet-mapping>
+    
+    <!-- Handler mappings -->
+    <servlet>
+        <servlet-name>employee_handler</servlet-name>
+        <jsp-file>/employee_handler.jsp</jsp-file>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>employee_handler</servlet-name>
+        <url-pattern>/employee_handler</url-pattern>
+    </servlet-mapping>
+    
+    <servlet>
+        <servlet-name>department_handler</servlet-name>
+        <jsp-file>/department_handler.jsp</jsp-file>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>department_handler</servlet-name>
+        <url-pattern>/department_handler</url-pattern>
+    </servlet-mapping>
+    
+    <servlet>
+        <servlet-name>task_handler</servlet-name>
+        <jsp-file>/task_handler.jsp</jsp-file>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>task_handler</servlet-name>
+        <url-pattern>/task_handler</url-pattern>
+    </servlet-mapping>
+    
+    <servlet>
+        <servlet-name>login_handler</servlet-name>
+        <jsp-file>/login_handler.jsp</jsp-file>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>login_handler</servlet-name>
+        <url-pattern>/login_handler</url-pattern>
+    </servlet-mapping>
+    
+    <!-- Welcome file -->
+    <welcome-file-list>
+        <welcome-file>login.jsp</welcome-file>
+    </welcome-file-list>
+    
     <session-config>
-        <session-timeout>
-            30
-        </session-timeout>
+        <session-timeout>30</session-timeout>
     </session-config>
 </web-app>

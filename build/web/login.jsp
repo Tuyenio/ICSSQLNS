@@ -152,14 +152,15 @@
                     <%= errorMsg %>
                 </div>
             <% } %>
-            <form action="login.jsp" method="post">
+            <form action="login_handler.jsp" method="post">
+                <input type="hidden" name="action" value="login">
                 <div class="mb-3">
                     <label for="email" class="form-label">Email</label>
                     <input type="text" class="form-control" id="email" name="email" placeholder="Nhập email">
                 </div>
                 <div class="mb-3">
                     <label for="password" class="form-label">Password</label>
-                    <input type="password" class="form-control" id="password" name="password" placeholder="Nhập mật khẩu">
+                    <input type="password" class="form-control" id="password" name="matKhau" placeholder="Nhập mật khẩu">
                 </div>
                 <div class="remember-forgot mb-3">
                     <div>
