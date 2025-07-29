@@ -439,7 +439,7 @@
                                 <%
                                 if (danhSachCongViec != null) {
                                     for (CongViec cv : danhSachCongViec) {
-                                        if ("DangLam".equals(cv.getTrangThai())) {
+                                        if ("DangThucHien".equals(cv.getTrangThai())) {
                                 %>
                                 <div class="kanban-task" data-bs-toggle="modal" data-bs-target="#modalTaskDetail">
                                     <div class="task-title"><%= cv.getTenCongViec() %></div>
@@ -452,7 +452,7 @@
                                         String priorityText = cv.getMucDoUuTien();
                                         if ("Cao".equals(priorityText)) {
                                             priorityClass = "bg-danger";
-                                        } else if ("Trung binh".equals(priorityText)) {
+                                        } else if ("TrungBinh".equals(priorityText)) {
                                             priorityClass = "bg-warning text-dark";
                                         } else if ("Thap".equals(priorityText)) {
                                             priorityClass = "bg-success";
@@ -491,7 +491,7 @@
                                 <%
                                 if (danhSachCongViec != null) {
                                     for (CongViec cv : danhSachCongViec) {
-                                        if ("HoanThanh".equals(cv.getTrangThai())) {
+                                        if ("DaHoanThanh".equals(cv.getTrangThai())) {
                                 %>
                                 <div class="kanban-task" data-bs-toggle="modal" data-bs-target="#modalTaskDetail">
                                     <div class="task-title"><%= cv.getTenCongViec() %></div>
@@ -504,7 +504,7 @@
                                         String priorityText = cv.getMucDoUuTien();
                                         if ("Cao".equals(priorityText)) {
                                             priorityClass = "bg-danger";
-                                        } else if ("Trung binh".equals(priorityText)) {
+                                        } else if ("TrungBinh".equals(priorityText)) {
                                             priorityClass = "bg-warning text-dark";
                                         } else if ("Thap".equals(priorityText)) {
                                             priorityClass = "bg-success";
@@ -544,7 +544,7 @@
                                 if (danhSachCongViec != null) {
                                     java.util.Date currentDate = new java.util.Date();
                                     for (CongViec cv : danhSachCongViec) {
-                                        if (cv.getNgayKetThuc() != null && cv.getNgayKetThuc().before(currentDate) && !"HoanThanh".equals(cv.getTrangThai())) {
+                                        if ("TreHan".equals(cv.getTrangThai()) || (cv.getNgayKetThuc() != null && cv.getNgayKetThuc().before(currentDate) && !"DaHoanThanh".equals(cv.getTrangThai()))) {
                                 %>
                                 <div class="kanban-task" data-bs-toggle="modal" data-bs-target="#modalTaskDetail">
                                     <div class="task-title"><%= cv.getTenCongViec() %></div>
@@ -555,7 +555,7 @@
                                     <span class="task-priority badge bg-danger">Cao</span>
                                     <span class="task-status badge bg-danger">Trễ hạn</span>
                                     <div class="progress">
-                                        <div class="progress-bar bg-danger" style="width: 70%"></div>
+                                        <div class="progress-bar bg-danger" style="width: <%= cv.getPhanTramTienDo() != null ? cv.getPhanTramTienDo() + "%" : "0%" %>"></div>
                                     </div>
                                     <div class="task-actions">
                                         <button class="btn btn-sm btn-warning edit-task-btn" 
@@ -612,7 +612,7 @@
                                             <label class="form-label">Mức độ ưu tiên</label>
                                             <select class="form-select" name="mucDoUuTien" id="taskPriority">
                                                 <option value="Thap">Thấp</option>
-                                                <option value="Trung binh" selected>Trung bình</option>
+                                                <option value="TrungBinh" selected>Trung bình</option>
                                                 <option value="Cao">Cao</option>
                                             </select>
                                         </div>
@@ -650,8 +650,9 @@
                                             <label class="form-label">Trạng thái</label>
                                             <select class="form-select" name="trangThai" id="taskStatus">
                                                 <option value="ChuaBatDau">Chưa bắt đầu</option>
-                                                <option value="DangLam">Đang làm</option>
-                                                <option value="HoanThanh">Hoàn thành</option>
+                                                <option value="DangThucHien">Đang thực hiện</option>
+                                                <option value="DaHoanThanh">Hoàn thành</option>
+                                                <option value="TreHan">Trễ hạn</option>
                                             </select>
                                         </div>
                                     </div>

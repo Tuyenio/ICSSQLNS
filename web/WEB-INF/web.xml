@@ -66,6 +66,15 @@
         <url-pattern>/login_handler</url-pattern>
     </servlet-mapping>
     
+    <servlet>
+        <servlet-name>attendance_handler</servlet-name>
+        <jsp-file>/attendance_handler.jsp</jsp-file>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>attendance_handler</servlet-name>
+        <url-pattern>/attendance_handler</url-pattern>
+    </servlet-mapping>
+    
     <!-- Welcome file -->
     <welcome-file-list>
         <welcome-file>login.jsp</welcome-file>

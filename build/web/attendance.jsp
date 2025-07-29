@@ -1,4 +1,48 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page import="dao.ChamCongDAO" %>
+<%@ page import="dao.NhanVienDAO" %>
+<%@ page import="dao.LuongDAO" %>
+<%@ page import="model.ChamCong" %>
+<%@ page import="model.NhanVien" %>
+<%@ page import="model.Luong" %>
+<%@ page import="util.AuthUtil" %>
+<%@ page import="java.util.List" %>
+<%@ page import="java.util.Calendar" %>
+<%@ page import="java.text.SimpleDateFormat" %>
+
+<%
+    // Kiểm tra đăng nhập
+    if (!AuthUtil.isLoggedIn(session)) {
+        response.sendRedirect(request.getContextPath() + "/login.jsp");
+        return;
+    }
+    
+    // Lấy dữ liệu chấm công
+    ChamCongDAO chamCongDAO = new ChamCongDAO();
+    LuongDAO luongDAO = new LuongDAO();
+    NhanVienDAO nhanVienDAO = new NhanVienDAO();
+    
+    // Lấy tháng năm hiện tại
+    Calendar cal = Calendar.getInstance();
+    int thangHienTai = cal.get(Calendar.MONTH) + 1;
+    int namHienTai = cal.get(Calendar.YEAR);
+    
+    // Lấy tham số filter
+    String thangParam = request.getParameter("thang");
+    String namParam = request.getParameter("nam");
+    
+    int thang = thangParam != null ? Integer.parseInt(thangParam) : thangHienTai;
+    int nam = namParam != null ? Integer.parseInt(namParam) : namHienTai;
+    
+    // Lấy danh sách chấm công và lương
+    List<ChamCong> dsChamCong = chamCongDAO.getChamCongByMonth(thang, nam);
+    List<Luong> dsLuong = luongDAO.getLuongByMonth(thang, nam);
+    List<NhanVien> dsNhanVien = nhanVienDAO.getAllNhanVien();
+    
+    SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+    SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm");
+%>
+
     <!DOCTYPE html>
     <html lang="vi">
 
@@ -204,6 +248,28 @@
                 <%@ include file="header.jsp" %>
                     <div class="main-content">
                         <div class="main-box">
+                            <!-- Thông báo -->
+                            <% 
+                            String successMsg = (String) session.getAttribute("successMsg");
+                            String errorMsg = (String) session.getAttribute("errorMsg");
+                            if (successMsg != null) {
+                                session.removeAttribute("successMsg");
+                            %>
+                            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                <i class="fa-solid fa-check-circle me-2"></i><%= successMsg %>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                            <% } %>
+                            
+                            <% if (errorMsg != null) {
+                                session.removeAttribute("errorMsg");
+                            %>
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                <i class="fa-solid fa-exclamation-circle me-2"></i><%= errorMsg %>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                            <% } %>
+                            
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <h3 class="mb-0"><i class="fa-solid fa-calendar-check me-2"></i>Chấm công & Lương</h3>
                                 <button class="btn btn-outline-success rounded-pill px-3" data-bs-toggle="modal"
@@ -213,23 +279,33 @@
                             </div>
                             <div class="row mb-3 filter-row g-2">
                                 <div class="col-md-3">
-                                    <input type="text" class="form-control" placeholder="Tìm kiếm theo tên, email...">
+                                    <input type="text" class="form-control" placeholder="Tìm kiếm theo tên, email..." id="searchInput">
                                 </div>
-                                <div class="col-md-3">
-                                    <select class="form-select">
-                                        <option>Phòng ban</option>
-                                        <!-- AJAX load phòng ban -->
+                                <div class="col-md-2">
+                                    <select class="form-select" name="thang">
+                                        <option value="">Tháng</option>
+                                        <% for(int i = 1; i <= 12; i++) { %>
+                                            <option value="<%= i %>" <%= (i == thang) ? "selected" : "" %>><%= i %></option>
+                                        <% } %>
                                     </select>
                                 </div>
-                                <div class="col-md-3">
-                                    <select class="form-select">
-                                        <option>Tháng</option>
-                                        <!-- AJAX load tháng/năm -->
+                                <div class="col-md-2">
+                                    <select class="form-select" name="nam">
+                                        <option value="">Năm</option>
+                                        <% for(int i = namHienTai - 2; i <= namHienTai + 1; i++) { %>
+                                            <option value="<%= i %>" <%= (i == nam) ? "selected" : "" %>><%= i %></option>
+                                        <% } %>
                                     </select>
                                 </div>
+                                <div class="col-md-2">
+                                    <button class="btn btn-outline-secondary w-100 rounded-pill" onclick="filterData()">
+                                        <i class="fa-solid fa-filter"></i> Lọc
+                                    </button>
+                                </div>
                                 <div class="col-md-3">
-                                    <button class="btn btn-outline-secondary w-100 rounded-pill"><i
-                                            class="fa-solid fa-filter"></i> Lọc</button>
+                                    <button class="btn btn-success rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#modalChamCong">
+                                        <i class="fa-solid fa-plus"></i> Chấm công
+                                    </button>
                                 </div>
                             </div>
                             <div class="table-responsive">
@@ -237,73 +313,72 @@
                                     <thead class="table-light">
                                         <tr>
                                             <th>#</th>
-                                            <th>Avatar</th>
                                             <th>Họ tên</th>
                                             <th>Phòng ban</th>
-                                            <th>Ngày vào</th>
                                             <th>Ngày</th>
                                             <th>Check-in</th>
                                             <th>Check-out</th>
                                             <th>Số giờ</th>
                                             <th>Trạng thái</th>
-                                            <th>Lương ngày</th>
                                             <th>Hành động</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <!-- AJAX load dữ liệu chấm công -->
+                                        <% 
+                                        if(dsChamCong != null && !dsChamCong.isEmpty()) {
+                                            int stt = 1;
+                                            for(ChamCong cc : dsChamCong) {
+                                        %>
                                         <tr>
-                                            <td>1</td>
-                                            <td><img src="https://i.pravatar.cc/40?img=1" class="rounded-circle"
-                                                    width="36"></td>
+                                            <td><%= stt++ %></td>
                                             <td>
-                                                <span class="fw-semibold text-primary attendance-emp-detail"
-                                                    style="cursor:pointer;" data-bs-toggle="modal"
-                                                    data-bs-target="#modalDetailAttendance">Nguyễn Văn A</span>
+                                                <span class="fw-semibold text-primary">
+                                                    <%= cc.getHoTenNhanVien() %>
+                                                </span>
                                             </td>
-                                            <td>Kỹ thuật</td>
-                                            <td>01/06/2024</td>
-                                            <td>10/06/2024</td>
-                                            <td>08:00</td>
-                                            <td>17:00</td>
-                                            <td>8</td>
-                                            <td><span class="badge bg-success badge-status">Đủ công</span></td>
-                                            <td>350,000đ</td>
+                                            <td><%= cc.getTenPhongBan() != null ? cc.getTenPhongBan() : "Chưa có" %></td>
+                                            <td><%= sdf.format(cc.getNgay()) %></td>
                                             <td>
-                                                <button class="btn btn-sm btn-info rounded-circle"
-                                                    data-bs-toggle="modal" data-bs-target="#modalDetailAttendance"><i
-                                                        class="fa-solid fa-eye"></i></button>
+                                                <%= cc.getCheckIn() != null ? timeFormat.format(cc.getCheckIn()) : "-" %>
+                                            </td>
+                                            <td>
+                                                <%= cc.getCheckOut() != null ? timeFormat.format(cc.getCheckOut()) : "-" %>
+                                            </td>
+                                            <td>
+                                                <%= cc.getSoGioLam() %> giờ
+                                            </td>
+                                            <td>
+                                                <% 
+                                                String trangThai = cc.getTrangThaiChamCong();
+                                                String badgeClass = "";
+                                                if("Đầy đủ".equals(trangThai)) {
+                                                    badgeClass = "bg-success";
+                                                } else if("Chưa ra".equals(trangThai)) {
+                                                    badgeClass = "bg-warning text-dark";
+                                                } else {
+                                                    badgeClass = "bg-danger";
+                                                }
+                                                %>
+                                                <span class="badge <%= badgeClass %> badge-status"><%= trangThai %></span>
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-sm btn-info rounded-circle" 
+                                                        data-bs-toggle="modal" data-bs-target="#modalDetailAttendance">
+                                                    <i class="fa-solid fa-eye"></i>
+                                                </button>
                                             </td>
                                         </tr>
+                                        <% 
+                                            }
+                                        } else {
+                                        %>
                                         <tr>
-                                            <td>2</td>
-                                            <td><img src="https://i.pravatar.cc/40?img=2" class="rounded-circle"
-                                                    width="36"></td>
-                                            <td>
-                                                <span class="fw-semibold text-primary attendance-emp-detail"
-                                                    style="cursor:pointer;" data-bs-toggle="modal"
-                                                    data-bs-target="#modalDetailAttendance">Trần Thị B</span>
-                                            </td>
-                                            <td>Kinh doanh</td>
-                                            <td>01/06/2024</td>
-                                            <td>10/06/2024</td>
-                                            <td>08:10</td>
-                                            <td>17:00</td>
-                                            <td>7.8</td>
-                                            <td><span class="badge bg-warning text-dark badge-status">Đi trễ</span></td>
-                                            <td>7,800,000đ</td>
-                                            <td>
-                                                <button class="btn btn-sm btn-info rounded-circle"
-                                                    data-bs-toggle="modal" data-bs-target="#modalDetailAttendance"><i
-                                                        class="fa-solid fa-eye"></i></button>
+                                            <td colspan="9" class="text-center py-4">
+                                                <i class="fa-solid fa-calendar-times fa-3x text-muted mb-3"></i>
+                                                <br>Không có dữ liệu chấm công tháng <%= thang %>/<%= nam %>
                                             </td>
                                         </tr>
-                                        <tr>
-                                            <td>3</td>
-                                            <td><img src="https://i.pravatar.cc/40?img=3" class="rounded-circle"
-                                                    width="36"></td>
-                                            <td>
-                                                <span class="fw-semibold text-primary attendance-emp-detail"
+                                        <% } %>
                                                     style="cursor:pointer;" data-bs-toggle="modal"
                                                     data-bs-target="#modalDetailAttendance">Lê Văn C</span>
                                             </td>
@@ -391,6 +466,46 @@
                                 </div>
                             </div>
                         </div>
+                        
+                        <!-- Modal chấm công -->
+                        <div class="modal fade" id="modalChamCong" tabindex="-1">
+                            <div class="modal-dialog">
+                                <form class="modal-content" method="post" action="attendance_handler.jsp">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title"><i class="fa-solid fa-clock"></i> Chấm công</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <input type="hidden" name="action" value="checkin">
+                                        <div class="mb-3">
+                                            <label class="form-label">Nhân viên</label>
+                                            <select class="form-select" name="nhanVienId" required>
+                                                <option value="">Chọn nhân viên</option>
+                                                <% for(NhanVien nv : dsNhanVien) { %>
+                                                    <option value="<%= nv.getId() %>"><%= nv.getHoTen() %> - <%= nv.getTenPhongBan() %></option>
+                                                <% } %>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Ngày</label>
+                                            <input type="date" class="form-control" name="ngay" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Loại chấm công</label>
+                                            <select class="form-select" name="loai" required>
+                                                <option value="checkin">Check-in</option>
+                                                <option value="checkout">Check-out</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="submit" class="btn btn-primary rounded-pill">Chấm công</button>
+                                        <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Huỷ</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        
                         <!-- Modal xuất phiếu lương -->
                         <div class="modal fade" id="modalExportPayroll" tabindex="-1">
                             <div class="modal-dialog">
@@ -419,8 +534,27 @@
                     </div>
             </div>
         </div>
-    </body>
 
-    </html>
-    </div>
-    </form
+        <script>
+            function filterData() {
+                const thang = document.querySelector('[name="thang"]').value;
+                const nam = document.querySelector('[name="nam"]').value;
+                
+                let url = 'attendance.jsp?';
+                if (thang) url += 'thang=' + thang + '&';
+                if (nam) url += 'nam=' + nam;
+                
+                window.location.href = url;
+            }
+            
+            // Set current date for chấm công
+            document.addEventListener('DOMContentLoaded', function() {
+                const today = new Date().toISOString().split('T')[0];
+                const dateInput = document.querySelector('[name="ngay"]');
+                if (dateInput) {
+                    dateInput.value = today;
+                }
+            });
+        </script>
+    </body>
+</html>

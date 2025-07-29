@@ -51,8 +51,17 @@
                 congViec.setNgayKetThuc(Date.valueOf(ngayKetThucStr));
             }
             
-            congViec.setTrangThai(request.getParameter("trangThai"));
-            congViec.setMucDoUuTien(request.getParameter("mucDoUuTien"));
+            String trangThai = request.getParameter("trangThai");
+            if (trangThai == null || trangThai.trim().isEmpty()) {
+                trangThai = "ChuaBatDau"; // Giá trị mặc định
+            }
+            congViec.setTrangThai(trangThai);
+            
+            String mucDoUuTien = request.getParameter("mucDoUuTien");
+            if (mucDoUuTien == null || mucDoUuTien.trim().isEmpty()) {
+                mucDoUuTien = "TrungBinh"; // Giá trị mặc định
+            }
+            congViec.setMucDoUuTien(mucDoUuTien);
             
             // Validation
             if (congViec.getTenCongViec() == null || congViec.getTenCongViec().trim().isEmpty()) {

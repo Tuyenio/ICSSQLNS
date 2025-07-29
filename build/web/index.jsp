@@ -1,4 +1,42 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page import="dao.NhanVienDAO" %>
+<%@ page import="dao.CongViecDAO" %>
+<%@ page import="dao.PhongBanDAO" %>
+<%@ page import="model.NhanVien" %>
+<%@ page import="model.CongViec" %>
+<%@ page import="model.PhongBan" %>
+<%@ page import="util.AuthUtil" %>
+<%@ page import="java.util.List" %>
+
+<%
+    // Kiểm tra đăng nhập
+    if (!AuthUtil.isLoggedIn(session)) {
+        response.sendRedirect(request.getContextPath() + "/login.jsp");
+        return;
+    }
+    
+    // Lấy dữ liệu thống kê
+    NhanVienDAO nhanVienDAO = new NhanVienDAO();
+    CongViecDAO congViecDAO = new CongViecDAO();
+    PhongBanDAO phongBanDAO = new PhongBanDAO();
+    
+    List<NhanVien> danhSachNhanVien = nhanVienDAO.getAllNhanVien();
+    List<CongViec> danhSachCongViec = congViecDAO.getAllCongViec();
+    List<PhongBan> danhSachPhongBan = phongBanDAO.getAllPhongBan();
+    
+    // Thống kê
+    int tongNhanVien = danhSachNhanVien.size();
+    int tongCongViec = danhSachCongViec.size();
+    int tongPhongBan = danhSachPhongBan.size();
+    
+    int congViecChuaBatDau = congViecDAO.countCongViecByTrangThai("ChuaBatDau");
+    int congViecDangThucHien = congViecDAO.countCongViecByTrangThai("DangThucHien");
+    int congViecDaHoanThanh = congViecDAO.countCongViecByTrangThai("DaHoanThanh");
+    int congViecTreHan = congViecDAO.countCongViecByTrangThai("TreHan");
+    
+    // Tính phần trăm hoàn thành
+    double phanTramHoanThanh = tongCongViec > 0 ? (double) congViecDaHoanThanh / tongCongViec * 100 : 0;
+%>
     <!DOCTYPE html>
     <html lang="vi">
 
@@ -299,23 +337,41 @@
                                 <div class="col-md-4">
                                     <div class="d-flex align-items-center">
                                         <i class="fa-solid fa-circle text-success me-2"></i>
-                                        <span>Đã hoàn thành: <b>12</b></span>
+                                        <span>Đã hoàn thành: <b><%= congViecDaHoanThanh %></b></span>
                                     </div>
                                     <div class="d-flex align-items-center mt-2">
                                         <i class="fa-solid fa-circle text-warning me-2"></i>
-                                        <span>Đang làm: <b>7</b></span>
+                                        <span>Đang thực hiện: <b><%= congViecDangThucHien %></b></span>
+                                    </div>
+                                    <div class="d-flex align-items-center mt-2">
+                                        <i class="fa-solid fa-circle text-info me-2"></i>
+                                        <span>Chưa bắt đầu: <b><%= congViecChuaBatDau %></b></span>
                                     </div>
                                     <div class="d-flex align-items-center mt-2">
                                         <i class="fa-solid fa-circle text-danger me-2"></i>
-                                        <span>Trễ hạn: <b>2</b></span>
+                                        <span>Trễ hạn: <b><%= congViecTreHan %></b></span>
                                     </div>
                                 </div>
                                 <div class="col-md-8">
-                                    <!-- Placeholder: Có thể thêm biểu đồ mini hoặc tiến độ tổng thể -->
+                                    <!-- Biểu đồ tiến độ tổng thể -->
                                     <div class="progress mt-2" style="height: 18px;">
-                                        <div class="progress-bar bg-success" style="width:60%">60% Hoàn thành</div>
-                                        <div class="progress-bar bg-warning" style="width:30%">30% Đang làm</div>
-                                        <div class="progress-bar bg-danger" style="width:10%">10% Trễ</div>
+                                        <% 
+                                        double pctHoanThanh = tongCongViec > 0 ? (double) congViecDaHoanThanh / tongCongViec * 100 : 0;
+                                        double pctDangLam = tongCongViec > 0 ? (double) congViecDangThucHien / tongCongViec * 100 : 0;
+                                        double pctTreHan = tongCongViec > 0 ? (double) congViecTreHan / tongCongViec * 100 : 0;
+                                        double pctChuaBatDau = tongCongViec > 0 ? (double) congViecChuaBatDau / tongCongViec * 100 : 0;
+                                        %>
+                                        <div class="progress-bar bg-success" style="width: <%= pctHoanThanh %>%"><%= String.format("%.0f", pctHoanThanh) %>% Hoàn thành</div>
+                                        <div class="progress-bar bg-warning" style="width: <%= pctDangLam %>%"><%= String.format("%.0f", pctDangLam) %>% Đang làm</div>
+                                        <div class="progress-bar bg-info" style="width: <%= pctChuaBatDau %>%"><%= String.format("%.0f", pctChuaBatDau) %>% Chưa bắt đầu</div>
+                                        <div class="progress-bar bg-danger" style="width: <%= pctTreHan %>%"><%= String.format("%.0f", pctTreHan) %>% Trễ</div>
+                                    </div>
+                                    <div class="mt-2">
+                                        <small class="text-muted">
+                                            Tổng: <strong><%= tongCongViec %></strong> công việc | 
+                                            <strong><%= tongNhanVien %></strong> nhân viên | 
+                                            <strong><%= tongPhongBan %></strong> phòng ban
+                                        </small>
                                     </div>
                                 </div>
                             </div>

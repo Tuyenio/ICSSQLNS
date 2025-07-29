@@ -197,6 +197,23 @@ public class CongViecDAO {
         return list;
     }
     
+    // Lấy công việc theo trạng thái (sử dụng trạng thái database mới)
+    public List<CongViec> getCongViecChuaBatDau() {
+        return getCongViecByTrangThai("ChuaBatDau");
+    }
+    
+    public List<CongViec> getCongViecDangThucHien() {
+        return getCongViecByTrangThai("DangThucHien");
+    }
+    
+    public List<CongViec> getCongViecDaHoanThanh() {
+        return getCongViecByTrangThai("DaHoanThanh");
+    }
+    
+    public List<CongViec> getCongViecTreHan() {
+        return getCongViecByTrangThai("TreHan");
+    }
+    
     // Cập nhật trạng thái công việc
     public boolean updateTrangThai(int id, String trangThai) {
         String sql = "UPDATE cong_viec SET trang_thai = ? WHERE id = ?";
